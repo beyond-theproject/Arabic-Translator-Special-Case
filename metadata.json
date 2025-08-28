@@ -1,0 +1,7 @@
+{
+  "name": "Penerjemah Kitab Arab Special - Li",
+  "description": "Aplikasi untuk menerjemahkan teks dari kitab berbahasa Arab kata per kata menggunakan AI. Terjemahkan dengan mengetik teks atau mengunggah gambar.\nCreate by Li",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
