@@ -40,7 +40,14 @@ export async function translateWordByWord(text: string): Promise<WordTranslation
     throw new Error("API Key is not configured. Please set the API_KEY environment variable.");
   }
 
-  const prompt = `Translate the following Arabic text into Indonesian, word by word. For each word, you MUST add the correct harakat (vowel marks). Crucially, wrap ONLY the harakat characters in a green-colored HTML span tag, like this: <span style="color:green;">َ</span>. The output must be a valid JSON array where each object has an 'arabic' key (the original word with styled harakat), a 'translation' key (the Indonesian translation), a 'pronunciation' key (the romanized transliteration), and a 'confidence' key with a value of 1.0. Preserve the original order. Do not add any explanation, introductory text, or markdown formatting, only the raw JSON array.
+  const prompt = `Translate the following Arabic text into Indonesian, word by word, with high contextual accuracy for connecting words.
+
+**Key Instructions:**
+1.  **Harakat Formatting:** For each word, you MUST add the correct harakat (vowel marks). Crucially, wrap ONLY the harakat characters in a green-colored HTML span tag, like this: \`<span style="color:green;">َ</span>\`.
+2.  **Contextual Connectors:** Pay special attention to common connecting words (prepositions, conjunctions, particles). Translate them contextually to ensure the Indonesian phrasing is natural and grammatically correct. For example, \`هُوَ\` can be 'ia (adalah)', \`إِلَى\` should be 'kepada', the words in \`وَمَا كَانَتْ\` should be translated to form 'Dan tidaklah', and \`إِلَّا\` as 'melainkan'. Choose the best Indonesian equivalent based on the surrounding words.
+3.  **JSON Output:** The output must be a valid JSON array where each object represents one Arabic word and has keys for 'arabic' (with styled harakat), 'translation', 'pronunciation', and a 'confidence' of 1.0.
+4.  **Preserve Order:** The order of words in the output array must match the original text.
+5.  **Clean JSON:** Do not add any explanation, introductory text, or markdown formatting. The response must be only the raw JSON array.
 
 Arabic text: "${text}"`;
 
@@ -74,16 +81,38 @@ export async function translateImageWordByWord(imageData: string, mimeType: stri
     throw new Error("API Key is not configured. Please set the API_KEY environment variable.");
   }
 
-  const prompt = `You are an advanced Optical Character Recognition (OCR) specialist and an expert Arabic-to-Indonesian translator. Your critical mission is to analyze the provided image with the utmost precision, identify every Arabic word, and provide a word-by-word translation.
+  const prompt = `You are a highly specialized AI model with a dual function: state-of-the-art Optical Character Recognition (OCR) for Arabic script and expert-level Arabic-to-Indonesian contextual translation. Your task is to process the following image with maximum precision.
 
-**Primary Instructions:**
+**CRITICAL DIRECTIVES - Adherence is Mandatory:**
 
-1.  **Maximize OCR Accuracy & Add Harakat:** Your absolute top priority is the accuracy of Arabic text recognition. For every word you identify, you MUST add the complete and correct harakat (vowel marks), even if they are not fully visible in the image. Infer the correct vocalization based on context.
-2.  **Style Harakat in Green:** This is a critical formatting requirement. You MUST wrap ONLY the harakat characters (vowel marks) in a green-colored HTML span tag, for example: \`<span style="color:green;">َ</span>\`. Do not wrap the main Arabic letters.
-3.  **Mandatory Confidence Score:** For every single word recognized, you MUST provide a confidence score. This score must be a numerical value between 0.0 (no confidence) and 1.0 (absolute certainty), reflecting how clear the word is in the image. This is not optional.
-4.  **Provide Complete Data:** For each word, you will return its original Arabic form (with green HTML-styled harakat), its Indonesian translation, and a romanized transliteration.
-5.  **Strict JSON Format:** The entire output must be a single, valid JSON array. Each object within the array must contain exactly four keys: \`arabic\`, \`translation\`, \`pronunciation\`, and \`confidence\`.
-6.  **No extraneous text:** Do not include any explanatory text, introductory sentences, or markdown formatting. The response should begin with \`[\` and end with \`]\`.`;
+1.  **OCR ACCURACY IS PARAMOUNT:** Your primary objective is to recognize the Arabic text with the highest possible accuracy. Carefully analyze the script, including subtle marks.
+
+2.  **MANDATORY HARAKAT & HTML COLORING:**
+    *   For EVERY Arabic word you recognize, you MUST add the full, contextually correct harakat (vowel marks).
+    *   This is a NON-NEGOTIABLE formatting rule: You MUST wrap EACH harakat character individually in an HTML span tag styled with green color. Example: \`ك<span style="color:green;">َ</span>ت<span style="color:green;">َ</span>ب<span style="color:green;">َ</span>\`. Do NOT wrap the entire word or multiple harakat in a single span.
+
+3.  **MANDATORY CONFIDENCE SCORE:**
+    *   For EVERY single word, you MUST provide a \`confidence\` score.
+    *   This score must be a numerical value from 0.0 to 1.0, representing your certainty of the OCR accuracy for that specific word. 1.0 means perfect certainty. This is an ABSOLUTE REQUIREMENT.
+
+4.  **CONTEXTUAL TRANSLATION:**
+    *   Provide a precise, word-by-word Indonesian translation.
+    *   Pay special attention to connecting words (e.g., هُوَ, إِلَى, وَمَا كَانَتْ). Translate them naturally based on the surrounding text, not in a rigid, literal way. For example, \`هُوَ\` could be 'ia (adalah)', and \`إِلَّا\` could be 'melainkan'.
+
+**OUTPUT FORMAT - STRICTLY JSON:**
+You must return ONLY a valid JSON array. Each object in the array represents a single word and must contain exactly four keys: \`arabic\`, \`translation\`, \`pronunciation\` (romanized transliteration), and \`confidence\`.
+
+**Example of a single object in the array:**
+\`\`\`json
+{
+  "arabic": "ٱلْح<span style=\\"color:green;\\">َ</span>م<span style=\\"color:green;\\">ْ</span>د<span style=\\"color:green;\\">ُ</span>",
+  "translation": "segala puji",
+  "pronunciation": "al-ḥamdu",
+  "confidence": 0.98
+}
+\`\`\`
+
+Do not add any text, explanations, or markdown formatting outside of the JSON array. The response must start with \`[\` and end with \`]\`.`;
 
   try {
     const imagePart = {
